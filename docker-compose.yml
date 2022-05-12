@@ -1,0 +1,11 @@
+version: '3'
+
+services:
+  pi_watcher:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    environment:
+      - WEBHOOK_URL=YOUR WEBHOOK URL
+      - RSS_FEED_URL=YOUR RPILOCATOR RSS FEED URL
+    restart: 'unless-stopped'

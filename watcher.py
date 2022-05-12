@@ -5,20 +5,19 @@ from datetime import datetime, timedelta
 from time import sleep, mktime
 
 
-URL = "https://rpilocator.com/feed/?country=US&cat=PI4"
-DISCORD_WEBHOOK_URL = None
+RSS_URL = None
+WEBHOOK_URL = None
 
 LAST_CHECKED = datetime.now() - timedelta(hours=1)
 
 
 def filter_entry(entry):
     time = datetime.fromtimestamp(mktime(entry['published_parsed']))
-    title = entry['title']
-    return time > LAST_CHECKED and "US" in title
+    return time > LAST_CHECKED
 
 
 def check_url():
-    feed_response = feedparser.parse(URL)
+    feed_response = feedparser.parse(RSS_URL)
     last_built = datetime.fromtimestamp(
         mktime(feed_response['feed']['updated_parsed']))
     if last_built < LAST_CHECKED:
@@ -35,16 +34,29 @@ def check_url():
         title = entry['title']
         link = entry['link']
         print(f"\t[+] Got new entry: {title}\n\t\t{link}")
-        requests.post(DISCORD_WEBHOOK_URL, json={
+        requests.post(WEBHOOK_URL, json={
             "content": f"{title}\n{link}"})
 
 
 if __name__ == "__main__":
     print("[+] Started watcher.")
 
-    DISCORD_WEBHOOK_URL = os.environ.get("DISCORD_WEBHOOK_URL")
+    WEBHOOK_URL = os.environ.get("WEBHOOK_URL")
 
-    print(f"[+] Got {DISCORD_WEBHOOK_URL=}")
+    print(f"[+] Got {WEBHOOK_URL=}")
+
+    if not WEBHOOK_URL:
+        print("[-] No webhook URL found. Please set one.")
+        exit(1)
+
+    URL = os.environ.get("RSS_FEED_URL")
+
+    if not URL or "rpilocator" not in URL:
+        print("[-] No rpilocator RSS feed URL found. Please set one.")
+        exit(1)
+
+    print(f"[+] Got {URL=}")
+
     while True:
         print("[+] Checking for new entries.")
         check_url()
