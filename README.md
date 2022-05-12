@@ -18,7 +18,7 @@ python -m pip install -r requirement.txt
 
 4. Run this command to start the watcher
 ```bash
-python ./webhook.py
+python ./watcher.py
 ```
 
 ## Docker
