@@ -49,13 +49,13 @@ if __name__ == "__main__":
         print("[-] No webhook URL found. Please set one.")
         exit(1)
 
-    URL = os.environ.get("RSS_FEED_URL")
+    RSS_URL = os.environ.get("RSS_URL")
 
-    if not URL or "rpilocator" not in URL:
+    if not RSS_URL or "rpilocator" not in RSS_URL:
         print("[-] No rpilocator RSS feed URL found. Please set one.")
         exit(1)
 
-    print(f"[+] Got {URL=}")
+    print(f"[+] Got {RSS_URL=}")
 
     while True:
         print("[+] Checking for new entries.")

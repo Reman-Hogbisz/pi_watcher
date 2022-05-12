@@ -7,5 +7,5 @@ services:
       dockerfile: Dockerfile
     environment:
       - WEBHOOK_URL=YOUR WEBHOOK URL
-      - RSS_FEED_URL=YOUR RPILOCATOR RSS FEED URL
+      - RSS_URL=YOUR RPILOCATOR RSS FEED URL
     restart: 'unless-stopped'
