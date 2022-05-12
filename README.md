@@ -1,6 +1,6 @@
 # pi_watcher
 
-A rpilocator RSS feed aggregator that posts to a webhook every 5 minutes if there is a new product to be found in the US.
+A rpilocator RSS feed aggregator that posts to a webhook every 5 minutes if there is a new product to be found.
 
 # Usage
 
@@ -9,7 +9,7 @@ A rpilocator RSS feed aggregator that posts to a webhook every 5 minutes if ther
 cp .env.example .env
 ```
 
-2. Set `WEBHOOK_URL` to your preferred webhook url and `RSS_URL` to your rpilocator rss feed
+2. Set `WEBHOOK_URL` to your preferred webhook url and `RSS_URL` to your [rpilocator rss feed](https://rpilocator.com/about.cfm)
 
 3. Install required packages
 ```bash
