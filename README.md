@@ -4,15 +4,25 @@ A rpilocator RSS feed aggregator that posts to a webhook every 5 minutes if ther
 
 # Usage
 
-1. Set `WEBHOOK_URL` to your preferred webhook url and `RSS_FEED_URL` to your rpilocator rss feed
+1. Copy `.env.example` to `.env`
+```bash
+cp .env.example .env
+```
 
-2. Run this command to start the watcher
+2. Set `WEBHOOK_URL` to your preferred webhook url and `RSS_URL` to your rpilocator rss feed
 
+3. Install required packages
+```bash
+python -m pip install -r requirement.txt
+```
+
+4. Run this command to start the watcher
 ```bash
 python ./webhook.py
 ```
 
-3. Or, alternatively, run using docker-compose, editting the `docker-compose.yml` file with your environment variables
+## Docker
+ Alternatively, run using docker-compose, editting the `docker-compose.yml` file with your environment variables
 
 ```bash
 docker-compose up
