@@ -105,6 +105,9 @@ if __name__ == "__main__":
         try:
             FREQUENCY = float(FREQUENCY)
             print(f"[+] Converted {FREQUENCY} to float.")
+            if FREQUENCY <= 0:
+                print(f"{FREQUENCY} is an invalid frequency! Defaulting to 5")
+                FREQUENCY = 5
         except ConversionError:
             print(
                 f"[-] Failed to convert {FREQUENCY} to a floating point number! Defaulting to 5 minutes.")
