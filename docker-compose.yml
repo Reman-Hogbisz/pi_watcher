@@ -8,6 +8,6 @@ services:
     environment:
       - WEBHOOK_URL=YOUR WEBHOOK URL
       - RSS_URL=YOUR RPILOCATOR RSS FEED URL
-      - USER_AGENT=Hogbisz Pi pi_watcher
+      - USER_AGENT=Hogbisz Pi Watcher
       - FREQUENCY=5
     restart: 'unless-stopped'
