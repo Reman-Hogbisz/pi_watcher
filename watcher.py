@@ -1,3 +1,4 @@
+from xdrlib import ConversionError
 import requests
 import feedparser
 import os
@@ -10,6 +11,8 @@ pp = pprint.PrettyPrinter(indent=4)
 
 RSS_URL = None
 WEBHOOK_URL = None
+USER_AGENT = "Hogbisz Pi Watcher"
+FREQUENCY = 5  # In Minutes
 
 LAST_CHECKED = datetime.now() - timedelta(hours=1)
 
@@ -24,12 +27,12 @@ def filter_entry(entry):
 
 
 def check_url():
-    feed_response = feedparser.parse(RSS_URL)
+    feed_response = feedparser.parse(RSS_URL, agent=USER_AGENT)
     try:
         last_built = datetime.fromtimestamp(
             mktime(feed_response['feed']['updated_parsed']))
     except KeyError:
-        eprint('No updated_parsed key in feed')
+        eprint('[-] No updated_parsed key in feed')
         pp.print(feed_response)
         return
 
@@ -40,7 +43,7 @@ def check_url():
     try:
         entries = list(filter(filter_entry, feed_response['entries']))
     except KeyError:
-        eprint('No entries key in feed')
+        eprint('[-] No entries key in feed')
         pp.print(feed_response)
         return
     length_of_entries = len(entries)
@@ -52,18 +55,19 @@ def check_url():
         try:
             title = entry['title']
         except KeyError:
-            eprint('No title in entry')
+            eprint('[-] No title in entry')
             pp.print(entry)
             continue
         try:
             link = entry['link']
         except KeyError:
-            eprint('No link in entry')
+            eprint('[-] No link in entry')
             pp.print(entry)
             continue
         print(f"\t[+] Got new entry: {title}\n\t\t{link}")
         requests.post(WEBHOOK_URL, json={
             "content": f"{title}\n{link}"})
+        sleep(0.25)
 
 
 if __name__ == "__main__":
@@ -85,9 +89,30 @@ if __name__ == "__main__":
 
     print(f"[+] Got {RSS_URL=}")
 
+    USER_AGENT_OPTION = os.environ.get("USER_AGENT")
+
+    if USER_AGENT_OPTION:
+        USER_AGENT = USER_AGENT_OPTION
+
+    FREQUENCY = os.environ.get("FREQUENCY")
+
+    if not FREQUENCY:
+        print("[-] No frequency environment variabel found. Defaulting to 5 minutes.")
+        FREQUENCY = 5
+    else:
+        print(
+            "[+] Found FREQUENCY environment variable. Attempting to convert it to a float.")
+        try:
+            FREQUENCY = float(FREQUENCY)
+            print(f"[+] Converted {FREQUENCY} to float.")
+        except ConversionError:
+            print(
+                f"[-] Failed to convert {FREQUENCY} to a floating point number! Defaulting to 5 minutes.")
+            FREQUENCY = 5
+
     while True:
         print("[+] Checking for new entries.")
         check_url()
         print("[+] Done. Sleeping for 5 minutes.")
         LAST_CHECKED = datetime.now()
-        sleep(5 * 60)
+        sleep(FREQUENCY * 60)
