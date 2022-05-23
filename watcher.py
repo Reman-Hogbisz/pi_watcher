@@ -22,8 +22,13 @@ def eprint(*args, **kwargs):
 
 
 def filter_entry(entry):
-    time = datetime.fromtimestamp(mktime(entry['published_parsed']))
-    return time > LAST_CHECKED
+    try:
+        time = datetime.fromtimestamp(mktime(entry['published_parsed']))
+        return time > LAST_CHECKED
+    except KeyError:
+        eprint('[-] No published_parsed key in entry')
+        pp.pprint(entry)
+        return False
 
 
 def check_url():
@@ -68,6 +73,7 @@ def check_url():
         requests.post(WEBHOOK_URL, json={
             "content": f"{title}\n{link}"})
         sleep(0.25)
+    LAST_CHECKED = datetime.now()
 
 
 if __name__ == "__main__":
@@ -117,5 +123,4 @@ if __name__ == "__main__":
         print("[+] Checking for new entries.")
         check_url()
         print(f"[+] Done. Sleeping for {FREQUENCY} minutes.")
-        LAST_CHECKED = datetime.now()
         sleep(FREQUENCY * 60)
