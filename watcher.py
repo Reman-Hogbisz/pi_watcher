@@ -100,11 +100,14 @@ if __name__ == "__main__":
 
     if USER_AGENT_OPTION:
         USER_AGENT = USER_AGENT_OPTION
+        print(f"[+] Got {USER_AGENT_OPTION=}")
+    else:
+        print("[-] No user agent found. Using default. ('Hogbisz Pi Watcher')")
 
     FREQUENCY = os.environ.get("FREQUENCY")
 
     if not FREQUENCY:
-        print("[-] No frequency environment variabel found. Defaulting to 5 minutes.")
+        print("[-] No frequency environment variable found. Defaulting to 5 minutes.")
         FREQUENCY = 5
     else:
         print(
@@ -113,7 +116,8 @@ if __name__ == "__main__":
             FREQUENCY = float(FREQUENCY)
             print(f"[+] Converted {FREQUENCY} to float.")
             if FREQUENCY <= 0:
-                print(f"{FREQUENCY} is an invalid frequency! Defaulting to 5")
+                print(
+                    f"[-] {FREQUENCY} is an invalid frequency! Defaulting to 5 minutes.")
                 FREQUENCY = 5
         except ConversionError:
             print(
