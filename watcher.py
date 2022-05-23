@@ -33,7 +33,7 @@ def check_url():
             mktime(feed_response['feed']['updated_parsed']))
     except KeyError:
         eprint('[-] No updated_parsed key in feed')
-        pp.print(feed_response)
+        pp.pprint(feed_response)
         return
 
     if last_built < LAST_CHECKED:
@@ -44,7 +44,7 @@ def check_url():
         entries = list(filter(filter_entry, feed_response['entries']))
     except KeyError:
         eprint('[-] No entries key in feed')
-        pp.print(feed_response)
+        pp.pprint(feed_response)
         return
     length_of_entries = len(entries)
 
@@ -56,13 +56,13 @@ def check_url():
             title = entry['title']
         except KeyError:
             eprint('[-] No title in entry')
-            pp.print(entry)
+            pp.pprint(entry)
             continue
         try:
             link = entry['link']
         except KeyError:
             eprint('[-] No link in entry')
-            pp.print(entry)
+            pp.pprint(entry)
             continue
         print(f"\t[+] Got new entry: {title}\n\t\t{link}")
         requests.post(WEBHOOK_URL, json={
@@ -116,6 +116,6 @@ if __name__ == "__main__":
     while True:
         print("[+] Checking for new entries.")
         check_url()
-        print("[+] Done. Sleeping for 5 minutes.")
+        print(f"[+] Done. Sleeping for {FREQUENCY} minutes.")
         LAST_CHECKED = datetime.now()
         sleep(FREQUENCY * 60)
