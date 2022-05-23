@@ -32,6 +32,7 @@ def filter_entry(entry):
 
 
 def check_url():
+    global LAST_CHECKED
     feed_response = feedparser.parse(RSS_URL, agent=USER_AGENT)
     try:
         last_built = datetime.fromtimestamp(
