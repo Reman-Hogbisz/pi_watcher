@@ -1,11 +1,13 @@
+from random import randint
 from xdrlib import ConversionError
 import requests
 import feedparser
 import os
 import sys
 from datetime import datetime, timedelta
-from time import sleep, mktime
+from time import sleep, mktime, strftime
 import pprint
+from dotenv import load_dotenv
 
 pp = pprint.PrettyPrinter(indent=4)
 
@@ -13,8 +15,9 @@ RSS_URL = None
 WEBHOOK_URL = None
 USER_AGENT = "Hogbisz Pi Watcher"
 FREQUENCY = 5  # In Minutes
+DEBUG = False
 
-LAST_CHECKED = datetime.now() - timedelta(hours=1)
+LAST_CHECKED = datetime.now() - timedelta(minutes=20)
 
 
 def eprint(*args, **kwargs):
@@ -34,6 +37,8 @@ def filter_entry(entry):
 def check_url():
     global LAST_CHECKED
     feed_response = feedparser.parse(RSS_URL, agent=USER_AGENT)
+    if DEBUG:
+        pp.pprint(feed_response)
     try:
         last_built = datetime.fromtimestamp(
             mktime(feed_response['feed']['updated_parsed']))
@@ -57,6 +62,8 @@ def check_url():
     if length_of_entries > 0:
         print(f"[+] New posts found (found {length_of_entries})")
 
+    embeds = []
+
     for entry in entries:
         try:
             title = entry['title']
@@ -70,14 +77,37 @@ def check_url():
             eprint('[-] No link in entry')
             pp.pprint(entry)
             continue
-        print(f"\t[+] Got new entry: {title}\n\t\t{link}")
-        requests.post(WEBHOOK_URL, json={
-            "content": f"{title}\n{link}"})
-        sleep(0.25)
+        try:
+            time = entry['published_parsed']
+        except KeyError:
+            eprint('[-] No published in entry')
+            pp.pprint(entry)
+            continue
+        print(f"\t[+] Got new entry: {title}\n\t\t{link}\n\t\t{time}")
+        embeds.append({
+            "fields": [
+                {
+                    "name": "Title",
+                    "value": title
+                },
+                {
+                    "name": "Link",
+                    "value": link
+                }
+            ],
+            "color": randint(0, 0xffffff),
+            "timestamp": strftime('%Y-%m-%dT%H:%M:%SZ', time)
+        })
+    if DEBUG:
+        pp.pprint(embeds)
+    requests.post(WEBHOOK_URL, json={
+        "embeds": embeds
+    })
     LAST_CHECKED = datetime.now()
 
 
 if __name__ == "__main__":
+    load_dotenv()
     print("[+] Started watcher.")
 
     WEBHOOK_URL = os.environ.get("WEBHOOK_URL")
