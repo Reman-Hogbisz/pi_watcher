@@ -11,13 +11,22 @@ from dotenv import load_dotenv
 
 pp = pprint.PrettyPrinter(indent=4)
 
+GITHUB_URL = "https://github.com/Reman-Hogbisz/pi_watcher"
+
 RSS_URL = None
 WEBHOOK_URL = None
 USER_AGENT = "Hogbisz Pi Watcher"
 FREQUENCY = 5  # In Minutes
 DEBUG = False
+SQUELCH = False
+VERSION = 0.4
 
 LAST_CHECKED = datetime.now() - timedelta(minutes=20)
+
+
+def log(message):
+    if not SQUELCH:
+        print(f"[+] {message}")
 
 
 def eprint(*args, **kwargs):
@@ -48,7 +57,7 @@ def check_url():
         return
 
     if last_built < LAST_CHECKED:
-        print("[-] No new posts")
+        log("No new posts since last check")
         return
 
     try:
@@ -60,7 +69,10 @@ def check_url():
     length_of_entries = len(entries)
 
     if length_of_entries > 0:
-        print(f"[+] New posts found (found {length_of_entries})")
+        log(f"New posts found (found {length_of_entries})")
+    else:
+        log("No new posts found")
+        return
 
     embeds = []
 
@@ -83,11 +95,15 @@ def check_url():
             eprint('[-] No published in entry')
             pp.pprint(entry)
             continue
-        print(f"\t[+] Got new entry: {title}\n\t\t{link}\n\t\t{time}")
+        print(f"[+] Got new entry: {title}\n\t\t{link}\n\t\t{time}")
         embeds.append({
+            "author": {
+                "name": f"Hogbisz Pi Watcher",
+                "url": GITHUB_URL,
+            },
             "fields": [
                 {
-                    "name": "Title",
+                    "name": "Alert",
                     "value": title
                 },
                 {
@@ -96,7 +112,10 @@ def check_url():
                 }
             ],
             "color": randint(0, 0xffffff),
-            "timestamp": strftime('%Y-%m-%dT%H:%M:%SZ', time)
+            "timestamp": strftime('%Y-%m-%dT%H:%M:%SZ', time),
+            "footer": {
+                "text": f"Version {VERSION}"
+            }
         })
     if DEBUG:
         pp.pprint(embeds)
@@ -108,54 +127,64 @@ def check_url():
 
 if __name__ == "__main__":
     load_dotenv()
-    print("[+] Started watcher.")
+    print(f"[+] Started watcher version {VERSION}.")
+
+    SQUELCH = os.environ.get("SQUELCH")
+
+    if not SQUELCH:
+        eprint("[-] SQUELCH is not set. Will default to False.")
+        SQUELCH = False
+    else:
+        SQUELCH = SQUELCH.lower() == "true"
+
+    log(f"Got {SQUELCH=}")
 
     WEBHOOK_URL = os.environ.get("WEBHOOK_URL")
 
-    print(f"[+] Got {WEBHOOK_URL=}")
+    log(f"Got {WEBHOOK_URL=}")
 
     if not WEBHOOK_URL:
-        print("[-] No webhook URL found. Please set one.")
+        eprint("[-] No webhook URL found. Please set one.")
         exit(1)
 
     RSS_URL = os.environ.get("RSS_URL")
 
     if not RSS_URL or "rpilocator" not in RSS_URL:
-        print("[-] No rpilocator RSS feed URL found. Please set one.")
+        eprint("[-] No rpilocator RSS feed URL found. Please set one.")
         exit(1)
 
-    print(f"[+] Got {RSS_URL=}")
+    log(f"Got {RSS_URL=}")
 
     USER_AGENT_OPTION = os.environ.get("USER_AGENT")
 
     if USER_AGENT_OPTION:
         USER_AGENT = USER_AGENT_OPTION
-        print(f"[+] Got {USER_AGENT_OPTION=}")
+        log(f"Got {USER_AGENT_OPTION=}")
     else:
-        print("[-] No user agent found. Using default. ('Hogbisz Pi Watcher')")
+        eprint("[-] No user agent found. Using default. ('Hogbisz Pi Watcher')")
 
     FREQUENCY = os.environ.get("FREQUENCY")
 
     if not FREQUENCY:
-        print("[-] No frequency environment variable found. Defaulting to 5 minutes.")
+        eprint("[-] No frequency environment variable found. Defaulting to 5 minutes.")
         FREQUENCY = 5
     else:
-        print(
-            "[+] Found FREQUENCY environment variable. Attempting to convert it to a float.")
+        log(
+            "Found FREQUENCY environment variable. Attempting to convert it to a float.")
         try:
             FREQUENCY = float(FREQUENCY)
-            print(f"[+] Converted {FREQUENCY} to float.")
+            log(f"Converted {FREQUENCY} to float.")
             if FREQUENCY <= 0:
-                print(
+                eprint(
                     f"[-] {FREQUENCY} is an invalid frequency! Defaulting to 5 minutes.")
                 FREQUENCY = 5
         except ConversionError:
-            print(
+            eprint(
                 f"[-] Failed to convert {FREQUENCY} to a floating point number! Defaulting to 5 minutes.")
             FREQUENCY = 5
 
     while True:
-        print("[+] Checking for new entries.")
+        log("Checking for new entries.")
         check_url()
-        print(f"[+] Done. Sleeping for {FREQUENCY} minutes.")
+        log(f"Done. Sleeping for {FREQUENCY} minutes.")
         sleep(FREQUENCY * 60)
